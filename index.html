@@ -57,9 +57,12 @@
         #uploaded-image {
             display: none;
             position: absolute;
-            cursor: pointer;
+            bottom: 10px;
+            left: 10px;
             max-width: 100%;
-            max-height: 100%;
+            max-height: 100px;
+            border: 2px solid #fff;
+            border-radius: 8px;
         }
         #result-section {
             background: rgba(0, 0, 0, 0.9);
@@ -116,7 +119,7 @@
 
     <!-- Upload Section -->
     <div id="upload-section">
-        <h1>Upload and Adjust Image</h1>
+        <h1>Upload Image</h1>
         <input type="file" id="file-input" accept="image/*">
     </div>
 
@@ -128,7 +131,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.9.22/dist/interact.min.js"></script>
     <script>
         const fileInput = document.getElementById('file-input');
         const videoSection = document.getElementById('video-section');
@@ -137,7 +139,7 @@
         const downloadLink = document.getElementById('download-link');
         const video = document.getElementById('background-video');
         const resultVideo = document.getElementById('result-video');
-        const uploadedImage = document.createElement('img');
+        const uploadedImage = document.getElementById('uploaded-image') || document.createElement('img');
 
         // Show upload section when "Next" button is clicked
         document.getElementById('next-button').addEventListener('click', () => {
@@ -154,13 +156,12 @@
                     uploadedImage.src = e.target.result;
                     uploadedImage.style.display = 'block';
                     uploadedImage.style.position = 'absolute';
-                    uploadedImage.style.top = '0';
-                    uploadedImage.style.left = '0';
+                    uploadedImage.style.bottom = '10px';
+                    uploadedImage.style.left = '10px';
                     uploadedImage.style.maxWidth = '100%';
-                    uploadedImage.style.maxHeight = '100%';
-                    uploadSection.appendChild(uploadedImage);
+                    uploadedImage.style.maxHeight = '100px';
 
-                    // Show result section with video and image overlay
+                    // Display the result section with video and image overlay
                     videoSection.style.display = 'none';
                     uploadSection.style.display = 'none';
                     resultSection.style.display = 'flex';
@@ -175,47 +176,19 @@
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
                     // Draw image on canvas
-                    const x = parseFloat(uploadedImage.dataset.x || 0);
-                    const y = parseFloat(uploadedImage.dataset.y || 0);
-                    const width = uploadedImage.offsetWidth;
-                    const height = uploadedImage.offsetHeight;
-                    context.drawImage(uploadedImage, x, y, width, height);
+                    const image = new Image();
+                    image.src = uploadedImage.src;
+                    image.onload = () => {
+                        context.drawImage(image, 10, canvas.height - image.height - 10); // Position image in bottom-left corner
 
-                    // Convert canvas to blob and display in result section
-                    canvas.toBlob((blob) => {
-                        const url = URL.createObjectURL(blob);
-                        resultVideo.src = url;
-                        downloadLink.href = url;
-                        downloadLink.style.display = 'block';
-                    }, 'image/png');
-
-                    // Initialize Interact.js for draggable and resizable functionality
-                    interact(uploadedImage)
-                        .draggable({
-                            listeners: {
-                                move(event) {
-                                    const x = (parseFloat(uploadedImage.dataset.x) || 0) + event.dx;
-                                    const y = (parseFloat(uploadedImage.dataset.y) || 0) + event.dy;
-                                    uploadedImage.style.transform = `translate(${x}px, ${y}px)`;
-                                    uploadedImage.dataset.x = x;
-                                    uploadedImage.dataset.y = y;
-                                }
-                            }
-                        })
-                        .resizable({
-                            edges: { left: true, right: true, bottom: true, top: true },
-                            listeners: {
-                                move(event) {
-                                    const { x, y } = event.target.dataset;
-                                    const { width, height } = event.rect;
-                                    uploadedImage.style.width = `${width}px`;
-                                    uploadedImage.style.height = `${height}px`;
-                                    uploadedImage.style.transform = `translate(${x}px, ${y}px)`;
-                                    uploadedImage.dataset.x = x;
-                                    uploadedImage.dataset.y = y;
-                                }
-                            }
-                        });
+                        // Convert canvas to blob and display in result section
+                        canvas.toBlob((blob) => {
+                            const url = URL.createObjectURL(blob);
+                            resultVideo.src = url;
+                            downloadLink.href = url;
+                            downloadLink.style.display = 'block';
+                        }, 'video/mp4');
+                    };
                 };
                 reader.readAsDataURL(file);
             } else {
