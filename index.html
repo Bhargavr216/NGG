@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video with Image Overlay</title>
+    <title>Video with Gold Framed Image Overlay</title>
     <style>
         body, html {
             margin: 0;
@@ -26,12 +26,28 @@
         }
         #overlay-image {
             position: absolute;
-            bottom: 10px;
-            left: 10px;
-            max-width: 200px;
-            max-height: 150px;
-            border: 2px solid #fff;
+            bottom: 20px;
+            right: 20px;
+            max-width: 250px; /* Medium size */
+            max-height: 200px; /* Medium size */
+            border: 5px solid gold; /* Gold border */
+            border-radius: 10px;
             display: none; /* Initially hidden */
+            animation: frameAnimation 2s infinite; /* Gold frame animation */
+        }
+        @keyframes frameAnimation {
+            0% {
+                border-color: gold;
+                box-shadow: 0 0 10px gold;
+            }
+            50% {
+                border-color: darkgoldenrod;
+                box-shadow: 0 0 20px darkgoldenrod;
+            }
+            100% {
+                border-color: gold;
+                box-shadow: 0 0 10px gold;
+            }
         }
         #upload-section {
             position: fixed;
@@ -56,14 +72,17 @@
         </video>
         <img id="overlay-image" />
     </div>
+    
     <!-- Upload Section -->
     <div id="upload-section">
         <h1>Upload Image</h1>
         <input type="file" id="file-input" accept="image/*">
     </div>
+    
     <script>
         const fileInput = document.getElementById('file-input');
         const overlayImage = document.getElementById('overlay-image');
+        const uploadSection = document.getElementById('upload-section');
         
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
@@ -72,6 +91,7 @@
                 reader.onload = function(e) {
                     overlayImage.src = e.target.result;
                     overlayImage.style.display = 'block'; // Show the image overlay
+                    uploadSection.style.display = 'none'; // Hide the upload section
                 };
                 reader.readAsDataURL(file);
             } else {
