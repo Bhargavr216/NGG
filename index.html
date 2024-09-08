@@ -116,21 +116,22 @@
 
     <!-- Upload Section -->
     <div id="upload-section">
-        <h1>Upload Image</h1>
+        <h1>Upload and Adjust Image</h1>
         <input type="file" id="file-input" accept="image/*">
         <button id="submit-button">Submit</button>
     </div>
 
     <!-- Result Section -->
     <div id="result-section">
-        <video id="result-video" controls></video>
-        <a id="download-link" download="output.mp4">Download Video</a>
+        <div id="result-container">
+            <video id="result-video" controls></video>
+            <a id="download-link" download="output.mp4">Download Video</a>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/interactjs@1.9.22/dist/interact.min.js"></script>
     <script>
         const fileInput = document.getElementById('file-input');
-        const uploadedImage = document.createElement('img');
         const submitButton = document.getElementById('submit-button');
         const videoSection = document.getElementById('video-section');
         const uploadSection = document.getElementById('upload-section');
@@ -138,6 +139,8 @@
         const downloadLink = document.getElementById('download-link');
         const video = document.getElementById('background-video');
         const resultVideo = document.getElementById('result-video');
+        const resultContainer = document.getElementById('result-container');
+        const uploadedImage = document.createElement('img');
 
         // Show upload section when "Next" button is clicked
         document.getElementById('next-button').addEventListener('click', () => {
@@ -161,16 +164,15 @@
                     videoSection.querySelector('#video-container').appendChild(uploadedImage);
 
                     // Initialize Interact.js for draggable and resizable functionality
-                    interact('#uploaded-image')
+                    interact(uploadedImage)
                         .draggable({
                             listeners: {
                                 move(event) {
-                                    const { x, y } = event.target.dataset;
-                                    const newX = (parseFloat(x) || 0) + event.dx;
-                                    const newY = (parseFloat(y) || 0) + event.dy;
-                                    event.target.style.transform = `translate(${newX}px, ${newY}px)`;
-                                    event.target.dataset.x = newX;
-                                    event.target.dataset.y = newY;
+                                    const x = (parseFloat(uploadedImage.dataset.x) || 0) + event.dx;
+                                    const y = (parseFloat(uploadedImage.dataset.y) || 0) + event.dy;
+                                    uploadedImage.style.transform = `translate(${x}px, ${y}px)`;
+                                    uploadedImage.dataset.x = x;
+                                    uploadedImage.dataset.y = y;
                                 }
                             }
                         })
@@ -179,14 +181,12 @@
                             listeners: {
                                 move(event) {
                                     const { x, y } = event.target.dataset;
-                                    const newX = (parseFloat(x) || 0) + event.dx;
-                                    const newY = (parseFloat(y) || 0) + event.dy;
                                     const { width, height } = event.rect;
-                                    event.target.style.width = `${width}px`;
-                                    event.target.style.height = `${height}px`;
-                                    event.target.style.transform = `translate(${newX}px, ${newY}px)`;
-                                    event.target.dataset.x = newX;
-                                    event.target.dataset.y = newY;
+                                    uploadedImage.style.width = `${width}px`;
+                                    uploadedImage.style.height = `${height}px`;
+                                    uploadedImage.style.transform = `translate(${x}px, ${y}px)`;
+                                    uploadedImage.dataset.x = x;
+                                    uploadedImage.dataset.y = y;
                                 }
                             }
                         });
@@ -199,6 +199,10 @@
 
         // Handle submit button click
         submitButton.addEventListener('click', () => {
+            videoSection.style.display = 'none';
+            uploadSection.style.display = 'none';
+            resultSection.style.display = 'flex';
+
             // Create a canvas to draw the video and image
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
@@ -215,30 +219,14 @@
             const height = uploadedImage.offsetHeight;
             context.drawImage(uploadedImage, x, y, width, height);
 
-            // Convert canvas to video (basic approach)
-            canvas.toBlob(async (blob) => {
-                const formData = new FormData();
-                formData.append('image', blob);
-                formData.append('video', video.src);
+            // Convert canvas to blob
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
 
-                // Replace with your server URL for processing video
-                const response = await fetch('YOUR_SERVER_URL_TO_PROCESS_VIDEO', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (response.ok) {
-                    const resultBlob = await response.blob();
-                    const resultUrl = URL.createObjectURL(resultBlob);
-
-                    // Display result section
-                    resultSection.style.display = 'flex';
-                    resultVideo.src = resultUrl;
-                    downloadLink.href = resultUrl;
-                    downloadLink.style.display = 'block';
-                } else {
-                    alert('Failed to generate video.');
-                }
+                // Set result video source to canvas blob URL
+                resultVideo.src = url;
+                downloadLink.href = url;
+                downloadLink.style.display = 'block';
             }, 'image/png');
         });
     </script>
