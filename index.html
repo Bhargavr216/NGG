@@ -10,7 +10,7 @@
             padding: 0;
             height: 100%;
             font-family: Arial, sans-serif;
-            background: #282c34; /* Dark background for contrast */
+            background: #282c34;
             color: #fff;
         }
         #video-section, #upload-section {
@@ -27,7 +27,7 @@
         #video-section {
             background: rgba(0, 0, 0, 0.7);
             z-index: 1;
-            display: none; /* Initially hidden */
+            display: none;
             flex-direction: column;
         }
         #video-container {
@@ -35,7 +35,7 @@
             width: 80%;
             max-width: 800px;
             height: auto;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            padding-top: 56.25%;
             background: #000;
             border-radius: 10px;
             overflow: hidden;
@@ -64,6 +64,19 @@
             max-height: 500px;
             border: 3px solid #fff;
             border-radius: 8px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+        #controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        #controls input {
+            margin: 5px;
         }
         #download-link {
             display: none;
@@ -87,6 +100,7 @@
                 <source src="VN20240908_183020.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
+            <img id="uploaded-image" />
         </div>
         <a id="download-link" download="output.mp4">Download Video</a>
     </div>
@@ -94,7 +108,12 @@
         <h1>Upload and Overlay Image</h1>
         <input type="file" id="file-input" accept="image/*">
         <button id="submit-button">Submit</button>
-        <img id="uploaded-image" />
+        <div id="controls">
+            <label>Position X: <input type="number" id="pos-x" value="20"></label>
+            <label>Position Y: <input type="number" id="pos-y" value="20"></label>
+            <label>Width: <input type="number" id="img-width" value="100"></label>
+            <label>Height: <input type="number" id="img-height" value="100"></label>
+        </div>
     </div>
     <script>
         const fileInput = document.getElementById('file-input');
@@ -103,6 +122,10 @@
         const videoSection = document.getElementById('video-section');
         const uploadSection = document.getElementById('upload-section');
         const downloadLink = document.getElementById('download-link');
+        const posXInput = document.getElementById('pos-x');
+        const posYInput = document.getElementById('pos-y');
+        const imgWidthInput = document.getElementById('img-width');
+        const imgHeightInput = document.getElementById('img-height');
         let imageDataUrl = '';
 
         fileInput.addEventListener('change', (event) => {
@@ -112,7 +135,7 @@
                 reader.onload = function(e) {
                     imageDataUrl = e.target.result;
                     uploadedImage.src = imageDataUrl;
-                    uploadedImage.style.display = 'block'; // Show the image preview
+                    uploadedImage.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -122,30 +145,19 @@
 
         submitButton.addEventListener('click', () => {
             if (imageDataUrl) {
-                // Show the video section and hide the upload section
                 uploadSection.style.display = 'none';
                 videoSection.style.display = 'flex';
-                
-                // Create a canvas to overlay the image onto the video
-                const canvas = document.createElement('canvas');
-                const video = document.getElementById('background-video');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const context = canvas.getContext('2d');
 
-                // Draw the video and image onto the canvas
-                video.addEventListener('loadeddata', () => {
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const image = new Image();
-                    image.src = imageDataUrl;
-                    image.onload = () => {
-                        context.drawImage(image, canvas.width - image.width - 20, canvas.height - image.height - 20); // Position image in bottom-right corner
-                        const outputVideo = canvas.toDataURL('video/mp4'); // Generate video URL (Note: This may not work correctly as canvas.toDataURL is for images)
-                        // Enable download
-                        downloadLink.href = outputVideo;
-                        downloadLink.style.display = 'block';
-                    };
-                });
+                const video = document.getElementById('background-video');
+                uploadedImage.style.left = `${posXInput.value}px`;
+                uploadedImage.style.top = `${posYInput.value}px`;
+                uploadedImage.style.width = `${imgWidthInput.value}px`;
+                uploadedImage.style.height = `${imgHeightInput.value}px`;
+
+                // Placeholder for video generation
+                // You'll need a library like ffmpeg.js to handle this part
+                downloadLink.href = '#'; // Update with actual video URL after processing
+                downloadLink.style.display = 'block';
             } else {
                 alert('Please upload an image first.');
             }
