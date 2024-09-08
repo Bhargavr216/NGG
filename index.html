@@ -10,6 +10,7 @@
             padding: 0; 
             height: 100%; 
             overflow: hidden;
+            font-family: Arial, sans-serif;
         }
         #background-video {
             position: absolute; 
@@ -26,15 +27,33 @@
             text-align: center; 
             margin-top: 20%;
         }
-        #uploaded-image {
-            display: none; 
-            position: absolute; 
-            bottom: 20px; 
-            right: 20px; 
-            max-width: 30%; 
-            max-height: 30%; 
+        #upload-container {
+            display: none; /* Initially hidden */
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
             z-index: 2;
-            mix-blend-mode: multiply; /* Adjust blending mode if needed */
+        }
+        #uploaded-image {
+            display: block; 
+            max-width: 100%; 
+            max-height: 500px; /* Adjust the max-height as needed */
+            border: 5px solid white;
+            border-radius: 8px;
+            margin: auto;
+        }
+        #upload-form h1 {
+            margin-bottom: 20px;
+        }
+        #upload-form input, #upload-form button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -47,12 +66,16 @@
         <h1>Upload an Image</h1>
         <input type="file" id="file-input" accept="image/*">
         <button id="submit-button">Submit</button>
+    </div>
+    <div id="upload-container">
+        <h2>Uploaded Image</h2>
         <img id="uploaded-image" />
     </div>
     <script>
         const fileInput = document.getElementById('file-input');
         const uploadedImage = document.getElementById('uploaded-image');
         const submitButton = document.getElementById('submit-button');
+        const uploadContainer = document.getElementById('upload-container');
         let imageDataUrl = '';
 
         fileInput.addEventListener('change', (event) => {
@@ -62,7 +85,7 @@
                 reader.onload = function(e) {
                     imageDataUrl = e.target.result;
                     uploadedImage.src = imageDataUrl;
-                    uploadedImage.style.display = 'none'; // Hide the image initially
+                    uploadedImage.style.display = 'block'; // Ensure the image is visible
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -72,8 +95,7 @@
 
         submitButton.addEventListener('click', () => {
             if (imageDataUrl) {
-                uploadedImage.src = imageDataUrl;
-                uploadedImage.style.display = 'block'; // Show the image
+                uploadContainer.style.display = 'block'; // Show the container with the image
             } else {
                 alert('Please upload an image first.');
             }
