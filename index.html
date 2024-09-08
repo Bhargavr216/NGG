@@ -54,8 +54,8 @@
             position: absolute;
             bottom: 20px;
             right: 20px;
-            width: 50px;
-            height: 50px;
+            width: 70px; /* Increased size */
+            height: 70px; /* Increased size */
             background: #61dafb;
             border-radius: 50%;
             display: flex;
@@ -63,7 +63,7 @@
             justify-content: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
             cursor: pointer;
-            font-size: 24px;
+            font-size: 30px; /* Larger icon */
             color: #000;
             z-index: 10;
         }
@@ -98,7 +98,7 @@
             link.href = video.getElementsByTagName('source')[0].src;
             link.download = 'video.mp4';
             link.click();
-            toggleMenu(); // Hide the menu after clicking
+            refreshPage(); // Refresh the page after clicking
         }
 
         function downloadImage() {
@@ -116,9 +116,15 @@
             // Convert canvas to data URL
             const link = document.createElement('a');
             link.href = canvas.toDataURL('image/png');
-            link.download = 'video-frame.png';
+            link.download = 'output.mp4.png'; // Set the filename for the image
             link.click();
-            toggleMenu(); // Hide the menu after clicking
+            refreshPage(); // Refresh the page after clicking
+        }
+
+        function refreshPage() {
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
         }
     </script>
 </body>
