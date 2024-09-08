@@ -23,13 +23,12 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            display: none; /* Hide sections initially */
         }
         #video-section {
             background: rgba(0, 0, 0, 0.7);
-            z-index: 1;
             display: flex;
             flex-direction: column;
+            z-index: 1;
         }
         #video-container {
             position: relative;
@@ -55,6 +54,7 @@
             padding: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
             z-index: 2;
+            display: none; /* Hide initially */
         }
         #upload-section input[type="file"] {
             margin: 10px 0;
@@ -85,7 +85,7 @@
             padding: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
             z-index: 3;
-            display: flex;
+            display: none; /* Hide initially */
             flex-direction: column;
         }
         #result-section video, #result-section img {
@@ -105,6 +105,18 @@
         #download-link:hover {
             background: #4fa3c5;
         }
+        #next-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #61dafb;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #next-button:hover {
+            background: #4fa3c5;
+        }
     </style>
 </head>
 <body>
@@ -118,6 +130,7 @@
             <img id="uploaded-image" />
         </div>
         <button id="next-button">Next</button>
+        <a id="download-link" download="output.mp4">Download Video</a>
     </div>
 
     <!-- Upload Section -->
@@ -135,7 +148,9 @@
 
     <!-- Result Section -->
     <div id="result-section">
-        <video id="result-video" controls></video>
+        <div id="result-video-container">
+            <video id="result-video" controls></video>
+        </div>
         <a id="download-link" download="output.mp4">Download Video</a>
     </div>
 
@@ -169,6 +184,7 @@
                 reader.onload = function(e) {
                     uploadedImage.src = e.target.result;
                     uploadedImage.style.display = 'block';
+
                     // Initialize Interact.js for draggable and resizable functionality
                     interact('#uploaded-image')
                         .draggable({
@@ -226,8 +242,8 @@
             const height = imageElement.offsetHeight;
             context.drawImage(imageElement, x, y, width, height);
 
-            // Convert canvas to data URL (Placeholder for video generation)
-            const finalImage = canvas.toDataURL('image/png'); // Use image/png since video generation isn't implemented
+            // Convert canvas to image (for download link)
+            const finalImage = canvas.toDataURL('image/png');
 
             // Update result section
             resultSection.style.display = 'flex';
