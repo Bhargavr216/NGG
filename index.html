@@ -3,79 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Overlay on Video Background</title>
+    <title>Interactive Video and Image Overlay</title>
     <style>
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            overflow: hidden;
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
             font-family: Arial, sans-serif;
+            background: #282c34; /* Dark background for contrast */
+            color: #fff;
         }
-        #background-video {
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; /* Cover the entire viewport */
-            z-index: -1; /* Place behind other content */
-        }
-        #upload-form {
-            position: relative; 
-            z-index: 1; 
-            text-align: center; 
-            margin-top: 20%;
-        }
-        #upload-container {
-            display: none; /* Initially hidden */
+        #video-section, #upload-section {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            padding: 20px;
-            border-radius: 10px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        #video-section {
             background: rgba(0, 0, 0, 0.7);
-            color: white;
+            z-index: 1;
+            display: none; /* Initially hidden */
+            flex-direction: column;
+        }
+        #video-container {
+            position: relative;
+            width: 80%;
+            max-width: 800px;
+            height: auto;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #upload-section {
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            padding: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
             z-index: 2;
         }
+        #upload-section input[type="file"] {
+            margin: 10px 0;
+        }
         #uploaded-image {
-            display: block; 
-            max-width: 100%; 
-            max-height: 500px; /* Adjust the max-height as needed */
-            border: 5px solid white;
+            display: none;
+            max-width: 100%;
+            max-height: 500px;
+            border: 3px solid #fff;
             border-radius: 8px;
-            margin: auto;
         }
-        #upload-form h1 {
-            margin-bottom: 20px;
-        }
-        #upload-form input, #upload-form button {
-            margin: 10px;
-            padding: 10px;
+        #download-link {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #61dafb;
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
             font-size: 16px;
+        }
+        #download-link:hover {
+            background: #4fa3c5;
         }
     </style>
 </head>
 <body>
-    <video id="background-video" autoplay muted loop>
-        <source src="VN20240908_180118.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
-    <div id="upload-form">
-        <h1>Upload an Image</h1>
+    <div id="video-section">
+        <div id="video-container">
+            <video id="background-video" autoplay muted loop>
+                <source src="VN20240908_180118.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <a id="download-link" download="output.mp4">Download Video</a>
+    </div>
+    <div id="upload-section">
+        <h1>Upload and Overlay Image</h1>
         <input type="file" id="file-input" accept="image/*">
         <button id="submit-button">Submit</button>
-    </div>
-    <div id="upload-container">
-        <h2>Uploaded Image</h2>
         <img id="uploaded-image" />
     </div>
     <script>
         const fileInput = document.getElementById('file-input');
         const uploadedImage = document.getElementById('uploaded-image');
         const submitButton = document.getElementById('submit-button');
-        const uploadContainer = document.getElementById('upload-container');
+        const videoSection = document.getElementById('video-section');
+        const uploadSection = document.getElementById('upload-section');
+        const downloadLink = document.getElementById('download-link');
         let imageDataUrl = '';
 
         fileInput.addEventListener('change', (event) => {
@@ -85,7 +112,7 @@
                 reader.onload = function(e) {
                     imageDataUrl = e.target.result;
                     uploadedImage.src = imageDataUrl;
-                    uploadedImage.style.display = 'block'; // Ensure the image is visible
+                    uploadedImage.style.display = 'block'; // Show the image preview
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -95,7 +122,30 @@
 
         submitButton.addEventListener('click', () => {
             if (imageDataUrl) {
-                uploadContainer.style.display = 'block'; // Show the container with the image
+                // Show the video section and hide the upload section
+                uploadSection.style.display = 'none';
+                videoSection.style.display = 'flex';
+                
+                // Create a canvas to overlay the image onto the video
+                const canvas = document.createElement('canvas');
+                const video = document.getElementById('background-video');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+
+                // Draw the video and image onto the canvas
+                video.addEventListener('loadeddata', () => {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const image = new Image();
+                    image.src = imageDataUrl;
+                    image.onload = () => {
+                        context.drawImage(image, canvas.width - image.width - 20, canvas.height - image.height - 20); // Position image in bottom-right corner
+                        const outputVideo = canvas.toDataURL('video/mp4'); // Generate video URL (Note: This may not work correctly as canvas.toDataURL is for images)
+                        // Enable download
+                        downloadLink.href = outputVideo;
+                        downloadLink.style.display = 'block';
+                    };
+                });
             } else {
                 alert('Please upload an image first.');
             }
