@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video and Image Overlay</title>
+    <title>Video with Image Overlay</title>
     <style>
         body, html {
             margin: 0;
@@ -13,27 +13,10 @@
             background: #282c34;
             color: #fff;
         }
-        #video-section, #upload-section, #result-section {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        #video-section {
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            flex-direction: column;
-            z-index: 1;
-        }
         #video-container {
             position: relative;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             background: #000;
         }
         video {
@@ -41,152 +24,58 @@
             height: 100%;
             object-fit: cover;
         }
-        #upload-section {
-            background: rgba(0, 0, 0, 0.9);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-            z-index: 2;
+        #overlay-image {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            max-width: 200px;
+            max-height: 150px;
+            border: 2px solid #fff;
             display: none; /* Initially hidden */
-            flex-direction: column;
-            align-items: center;
+        }
+        #upload-section {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 10;
         }
         #upload-section input[type="file"] {
             margin: 10px 0;
         }
-        #result-section {
-            background: rgba(0, 0, 0, 0.9);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-            z-index: 3;
-            display: none; /* Initially hidden */
-            flex-direction: column;
-            align-items: center;
-        }
-        #result-section video {
-            max-width: 100%;
-            max-height: 80%;
-        }
-        #download-link {
-            display: none;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #61dafb;
-            color: #000;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        #download-link:hover {
-            background: #4fa3c5;
-        }
-        #next-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #61dafb;
-            color: #000;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #next-button:hover {
-            background: #4fa3c5;
-        }
     </style>
 </head>
 <body>
-    <!-- Video Section -->
-    <div id="video-section">
-        <div id="video-container">
-            <video id="background-video" autoplay muted loop>
-                <source src="VN20240908_183020.mp4" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
-        <button id="next-button">Upload Image</button>
+    <!-- Video Container -->
+    <div id="video-container">
+        <video id="background-video" autoplay muted loop>
+            <source src="VN20240908_183020.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <img id="overlay-image" />
     </div>
-
     <!-- Upload Section -->
     <div id="upload-section">
         <h1>Upload Image</h1>
         <input type="file" id="file-input" accept="image/*">
-        <button id="submit-button">Submit</button>
     </div>
-
-    <!-- Result Section -->
-    <div id="result-section">
-        <div id="result-container">
-            <video id="result-video" controls></video>
-            <a id="download-link" href="#">Download Video</a>
-        </div>
-    </div>
-
     <script>
         const fileInput = document.getElementById('file-input');
-        const submitButton = document.getElementById('submit-button');
-        const videoSection = document.getElementById('video-section');
-        const uploadSection = document.getElementById('upload-section');
-        const resultSection = document.getElementById('result-section');
-        const resultVideo = document.getElementById('result-video');
-        const downloadLink = document.getElementById('download-link');
-        const video = document.getElementById('background-video');
-        let uploadedImage = null;
-
-        // Show upload section when "Next" button is clicked
-        document.getElementById('next-button').addEventListener('click', () => {
-            videoSection.style.display = 'none';
-            uploadSection.style.display = 'flex';
-        });
-
-        // Handle image file input
+        const overlayImage = document.getElementById('overlay-image');
+        
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    uploadedImage = e.target.result;
+                    overlayImage.src = e.target.result;
+                    overlayImage.style.display = 'block'; // Show the image overlay
                 };
                 reader.readAsDataURL(file);
             } else {
                 alert('Please upload a valid image file.');
-            }
-        });
-
-        // Handle form submission
-        submitButton.addEventListener('click', () => {
-            if (uploadedImage) {
-                // Show result section with video and image overlay
-                uploadSection.style.display = 'none';
-                resultSection.style.display = 'flex';
-
-                // Create a canvas to draw the video and image
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-
-                // Draw video on canvas
-                video.addEventListener('loadeddata', () => {
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    // Draw image on canvas
-                    const image = new Image();
-                    image.src = uploadedImage;
-                    image.onload = () => {
-                        context.drawImage(image, 10, canvas.height - image.height - 10); // Position image at the bottom-left corner
-
-                        // Convert canvas to a blob and create a URL for the result video
-                        canvas.toBlob((blob) => {
-                            const url = URL.createObjectURL(blob);
-                            resultVideo.src = url;
-                            downloadLink.href = url;
-                            downloadLink.style.display = 'block';
-                        }, 'image/png'); // Use image/png as canvas is used for static image
-                    };
-                });
-            } else {
-                alert('Please upload an image first.');
             }
         });
     </script>
