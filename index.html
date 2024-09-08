@@ -58,6 +58,8 @@
             display: none;
             position: absolute;
             cursor: pointer;
+            max-width: 100%;
+            max-height: 100%;
         }
         #result-section {
             background: rgba(0, 0, 0, 0.9);
@@ -214,16 +216,31 @@
             const height = uploadedImage.offsetHeight;
             context.drawImage(uploadedImage, x, y, width, height);
 
-            // Convert canvas to image (for result display)
-            const finalImage = canvas.toDataURL('image/png');
+            // Convert canvas to Blob
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('video', video.src);
+                formData.append('image', blob);
 
-            // Display result section
-            resultSection.style.display = 'flex';
-            videoSection.style.display = 'none';
-            uploadSection.style.display = 'none';
-            resultVideo.src = finalImage;
-            downloadLink.href = finalImage;
-            downloadLink.style.display = 'block';
+                // Replace with your server URL
+                const response = await fetch('YOUR_SERVER_URL_TO_PROCESS_VIDEO', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const resultBlob = await response.blob();
+                    const resultUrl = URL.createObjectURL(resultBlob);
+
+                    // Display result section
+                    resultSection.style.display = 'flex';
+                    resultVideo.src = resultUrl;
+                    downloadLink.href = resultUrl;
+                    downloadLink.style.display = 'block';
+                } else {
+                    alert('Failed to generate video.');
+                }
+            }, 'video/mp4');
         });
     </script>
 </body>
