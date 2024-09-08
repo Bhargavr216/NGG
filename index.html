@@ -13,7 +13,7 @@
             background: #282c34;
             color: #fff;
         }
-        #video-section, #upload-section {
+        #video-section, #upload-section, #result-section {
             position: absolute;
             top: 0;
             left: 0;
@@ -23,11 +23,12 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+            display: none; /* Hide sections initially */
         }
         #video-section {
             background: rgba(0, 0, 0, 0.7);
             z-index: 1;
-            display: none;
+            display: flex;
             flex-direction: column;
         }
         #video-container {
@@ -78,6 +79,19 @@
         #controls input {
             margin: 5px;
         }
+        #result-section {
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+        }
+        #result-section video, #result-section img {
+            max-width: 80%;
+            max-height: 80%;
+        }
         #download-link {
             display: none;
             margin-top: 20px;
@@ -94,6 +108,7 @@
     </style>
 </head>
 <body>
+    <!-- Video Section -->
     <div id="video-section">
         <div id="video-container">
             <video id="background-video" autoplay muted loop>
@@ -102,8 +117,10 @@
             </video>
             <img id="uploaded-image" />
         </div>
-        <a id="download-link" download="output.mp4">Download Video</a>
+        <button id="next-button">Next</button>
     </div>
+
+    <!-- Upload Section -->
     <div id="upload-section">
         <h1>Upload and Overlay Image</h1>
         <input type="file" id="file-input" accept="image/*">
@@ -115,27 +132,73 @@
             <label>Height: <input type="number" id="img-height" value="100"></label>
         </div>
     </div>
+
+    <!-- Result Section -->
+    <div id="result-section">
+        <video id="result-video" controls></video>
+        <a id="download-link" download="output.mp4">Download Video</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.9.22/dist/interact.min.js"></script>
     <script>
         const fileInput = document.getElementById('file-input');
         const uploadedImage = document.getElementById('uploaded-image');
         const submitButton = document.getElementById('submit-button');
         const videoSection = document.getElementById('video-section');
         const uploadSection = document.getElementById('upload-section');
+        const resultSection = document.getElementById('result-section');
         const downloadLink = document.getElementById('download-link');
         const posXInput = document.getElementById('pos-x');
         const posYInput = document.getElementById('pos-y');
         const imgWidthInput = document.getElementById('img-width');
         const imgHeightInput = document.getElementById('img-height');
-        let imageDataUrl = '';
+        const nextButton = document.getElementById('next-button');
+        const video = document.getElementById('background-video');
 
+        // Show upload section when "Next" button is clicked
+        nextButton.addEventListener('click', () => {
+            videoSection.style.display = 'none';
+            uploadSection.style.display = 'flex';
+        });
+
+        // Handle image file input
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    imageDataUrl = e.target.result;
-                    uploadedImage.src = imageDataUrl;
+                    uploadedImage.src = e.target.result;
                     uploadedImage.style.display = 'block';
+                    // Initialize Interact.js for draggable and resizable functionality
+                    interact('#uploaded-image')
+                        .draggable({
+                            listeners: {
+                                move(event) {
+                                    const { x, y } = event.target.dataset;
+                                    const newX = (parseFloat(x) || 0) + event.dx;
+                                    const newY = (parseFloat(y) || 0) + event.dy;
+                                    event.target.style.transform = `translate(${newX}px, ${newY}px)`;
+                                    event.target.dataset.x = newX;
+                                    event.target.dataset.y = newY;
+                                }
+                            }
+                        })
+                        .resizable({
+                            edges: { left: true, right: true, bottom: true, top: true },
+                            listeners: {
+                                move(event) {
+                                    let { x, y } = event.target.dataset;
+                                    x = (parseFloat(x) || 0) + event.dx;
+                                    y = (parseFloat(y) || 0) + event.dy;
+                                    const { width, height } = event.rect;
+                                    event.target.style.width = `${width}px`;
+                                    event.target.style.height = `${height}px`;
+                                    event.target.style.transform = `translate(${x}px, ${y}px)`;
+                                    event.target.dataset.x = x;
+                                    event.target.dataset.y = y;
+                                }
+                            }
+                        });
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -143,24 +206,35 @@
             }
         });
 
+        // Handle submit button click
         submitButton.addEventListener('click', () => {
-            if (imageDataUrl) {
-                uploadSection.style.display = 'none';
-                videoSection.style.display = 'flex';
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const videoElement = document.getElementById('background-video');
+            const imageElement = document.getElementById('uploaded-image');
 
-                const video = document.getElementById('background-video');
-                uploadedImage.style.left = `${posXInput.value}px`;
-                uploadedImage.style.top = `${posYInput.value}px`;
-                uploadedImage.style.width = `${imgWidthInput.value}px`;
-                uploadedImage.style.height = `${imgHeightInput.value}px`;
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
 
-                // Placeholder for video generation
-                // You'll need a library like ffmpeg.js to handle this part
-                downloadLink.href = '#'; // Update with actual video URL after processing
-                downloadLink.style.display = 'block';
-            } else {
-                alert('Please upload an image first.');
-            }
+            // Draw video on canvas
+            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+            // Draw image on canvas
+            const x = parseFloat(imageElement.dataset.x || 0);
+            const y = parseFloat(imageElement.dataset.y || 0);
+            const width = imageElement.offsetWidth;
+            const height = imageElement.offsetHeight;
+            context.drawImage(imageElement, x, y, width, height);
+
+            // Convert canvas to data URL (Placeholder for video generation)
+            const finalImage = canvas.toDataURL('image/png'); // Use image/png since video generation isn't implemented
+
+            // Update result section
+            resultSection.style.display = 'flex';
+            const resultVideo = document.getElementById('result-video');
+            resultVideo.src = finalImage;
+            downloadLink.href = finalImage;
+            downloadLink.style.display = 'block';
         });
     </script>
 </body>
