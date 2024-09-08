@@ -123,10 +123,8 @@
 
     <!-- Result Section -->
     <div id="result-section">
-        <div id="result-container">
-            <video id="result-video" controls></video>
-            <a id="download-link" download="output.mp4">Download Video</a>
-        </div>
+        <video id="result-video" controls></video>
+        <a id="download-link" download="output.mp4">Download Video</a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/interactjs@1.9.22/dist/interact.min.js"></script>
@@ -201,6 +199,7 @@
 
         // Handle submit button click
         submitButton.addEventListener('click', () => {
+            // Create a canvas to draw the video and image
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             canvas.width = video.videoWidth;
@@ -216,13 +215,13 @@
             const height = uploadedImage.offsetHeight;
             context.drawImage(uploadedImage, x, y, width, height);
 
-            // Convert canvas to Blob
+            // Convert canvas to video (basic approach)
             canvas.toBlob(async (blob) => {
                 const formData = new FormData();
-                formData.append('video', video.src);
                 formData.append('image', blob);
+                formData.append('video', video.src);
 
-                // Replace with your server URL
+                // Replace with your server URL for processing video
                 const response = await fetch('YOUR_SERVER_URL_TO_PROCESS_VIDEO', {
                     method: 'POST',
                     body: formData,
@@ -240,7 +239,7 @@
                 } else {
                     alert('Failed to generate video.');
                 }
-            }, 'video/mp4');
+            }, 'image/png');
         });
     </script>
 </body>
