@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video with Draggable and Resizable Image Overlay</title>
+    <title>Video with Gold Framed Image Overlay</title>
     <style>
         body, html {
             margin: 0;
@@ -26,23 +26,28 @@
         }
         #overlay-image {
             position: absolute;
-            bottom: 10px;
-            left: 10px;
-            max-width: 200px;
-            max-height: 150px;
-            border: 2px solid #fff;
+            bottom: 20px;
+            right: 20px;
+            max-width: 250px; /* Medium size */
+            max-height: 200px; /* Medium size */
+            border: 5px solid gold; /* Gold border */
+            border-radius: 10px;
             display: none; /* Initially hidden */
-            cursor: move;
+            animation: frameAnimation 2s infinite; /* Gold frame animation */
         }
-        #resize-handle {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 16px;
-            height: 16px;
-            background: #fff;
-            cursor: se-resize;
-            border-radius: 2px;
+        @keyframes frameAnimation {
+            0% {
+                border-color: gold;
+                box-shadow: 0 0 10px gold;
+            }
+            50% {
+                border-color: darkgoldenrod;
+                box-shadow: 0 0 20px darkgoldenrod;
+            }
+            100% {
+                border-color: gold;
+                box-shadow: 0 0 10px gold;
+            }
         }
         #upload-section {
             position: fixed;
@@ -66,17 +71,18 @@
             Your browser does not support the video tag.
         </video>
         <img id="overlay-image" />
-        <div id="resize-handle"></div>
     </div>
+    
     <!-- Upload Section -->
     <div id="upload-section">
         <h1>Upload Image</h1>
         <input type="file" id="file-input" accept="image/*">
     </div>
+    
     <script>
         const fileInput = document.getElementById('file-input');
         const overlayImage = document.getElementById('overlay-image');
-        const resizeHandle = document.getElementById('resize-handle');
+        const uploadSection = document.getElementById('upload-section');
         
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
@@ -85,59 +91,13 @@
                 reader.onload = function(e) {
                     overlayImage.src = e.target.result;
                     overlayImage.style.display = 'block'; // Show the image overlay
-                    overlayImage.style.width = '150px'; // Set initial width
-                    overlayImage.style.height = '100px'; // Set initial height
+                    uploadSection.style.display = 'none'; // Hide the upload section
                 };
                 reader.readAsDataURL(file);
             } else {
                 alert('Please upload a valid image file.');
             }
         });
-
-        // Drag and drop functionality
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        overlayImage.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            offsetX = e.clientX - overlayImage.getBoundingClientRect().left;
-            offsetY = e.clientY - overlayImage.getBoundingClientRect().top;
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                document.removeEventListener('mousemove', drag);
-            });
-        });
-
-        function drag(e) {
-            if (isDragging) {
-                overlayImage.style.left = `${e.clientX - offsetX}px`;
-                overlayImage.style.top = `${e.clientY - offsetY}px`;
-            }
-        }
-
-        // Resize functionality
-        let isResizing = false;
-
-        resizeHandle.addEventListener('mousedown', (e) => {
-            isResizing = true;
-            document.addEventListener('mousemove', resize);
-            document.addEventListener('mouseup', () => {
-                isResizing = false;
-                document.removeEventListener('mousemove', resize);
-            });
-        });
-
-        function resize(e) {
-            if (isResizing) {
-                const width = e.clientX - overlayImage.getBoundingClientRect().left;
-                const height = e.clientY - overlayImage.getBoundingClientRect().top;
-                if (width > 50 && height > 50) { // Minimum size constraints
-                    overlayImage.style.width = `${width}px`;
-                    overlayImage.style.height = `${height}px`;
-                }
-            }
-        }
     </script>
 </body>
 </html>
