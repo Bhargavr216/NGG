@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Video and Image Overlay</title>
+    <title>Video with Image Overlay</title>
     <style>
         body, html {
             margin: 0;
@@ -53,16 +53,6 @@
         }
         #upload-section input[type="file"] {
             margin: 10px 0;
-        }
-        #uploaded-image {
-            display: none;
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            max-width: 100%;
-            max-height: 100px;
-            border: 2px solid #fff;
-            border-radius: 8px;
         }
         #result-section {
             background: rgba(0, 0, 0, 0.9);
@@ -114,87 +104,24 @@
                 Your browser does not support the video tag.
             </video>
         </div>
-        <button id="next-button">Upload Image</button>
+        <button id="next-button" onclick="document.getElementById('upload-section').style.display = 'flex'; document.getElementById('video-section').style.display = 'none';">Upload Image</button>
     </div>
 
     <!-- Upload Section -->
     <div id="upload-section">
         <h1>Upload Image</h1>
-        <input type="file" id="file-input" accept="image/*">
+        <form id="upload-form" action="server-script.php" method="post" enctype="multipart/form-data">
+            <input type="file" name="image" accept="image/*" required>
+            <input type="submit" value="Upload Image">
+        </form>
     </div>
 
     <!-- Result Section -->
     <div id="result-section">
-        <div id="result-container">
-            <video id="result-video" controls></video>
-            <a id="download-link" download="output.mp4">Download Video</a>
-        </div>
+        <video id="result-video" controls>
+            <!-- This will be set by server-side script -->
+        </video>
+        <a id="download-link" href="#">Download Video</a>
     </div>
-
-    <script>
-        const fileInput = document.getElementById('file-input');
-        const videoSection = document.getElementById('video-section');
-        const uploadSection = document.getElementById('upload-section');
-        const resultSection = document.getElementById('result-section');
-        const downloadLink = document.getElementById('download-link');
-        const video = document.getElementById('background-video');
-        const resultVideo = document.getElementById('result-video');
-        const uploadedImage = document.getElementById('uploaded-image') || document.createElement('img');
-
-        // Show upload section when "Next" button is clicked
-        document.getElementById('next-button').addEventListener('click', () => {
-            videoSection.style.display = 'none';
-            uploadSection.style.display = 'flex';
-        });
-
-        // Handle image file input
-        fileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    uploadedImage.src = e.target.result;
-                    uploadedImage.style.display = 'block';
-                    uploadedImage.style.position = 'absolute';
-                    uploadedImage.style.bottom = '10px';
-                    uploadedImage.style.left = '10px';
-                    uploadedImage.style.maxWidth = '100%';
-                    uploadedImage.style.maxHeight = '100px';
-
-                    // Display the result section with video and image overlay
-                    videoSection.style.display = 'none';
-                    uploadSection.style.display = 'none';
-                    resultSection.style.display = 'flex';
-
-                    // Create a canvas to draw the video and image
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-
-                    // Draw video on canvas
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                    // Draw image on canvas
-                    const image = new Image();
-                    image.src = uploadedImage.src;
-                    image.onload = () => {
-                        context.drawImage(image, 10, canvas.height - image.height - 10); // Position image in bottom-left corner
-
-                        // Convert canvas to blob and display in result section
-                        canvas.toBlob((blob) => {
-                            const url = URL.createObjectURL(blob);
-                            resultVideo.src = url;
-                            downloadLink.href = url;
-                            downloadLink.style.display = 'block';
-                        }, 'video/mp4');
-                    };
-                };
-                reader.readAsDataURL(file);
-            } else {
-                alert('Please upload a valid image file.');
-            }
-        });
-    </script>
 </body>
 </html>
