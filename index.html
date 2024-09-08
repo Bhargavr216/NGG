@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video with Gold Framed Image Overlay</title>
+    <title>Video with Download Options</title>
     <style>
         body, html {
             margin: 0;
@@ -24,42 +24,51 @@
             height: 100%;
             object-fit: cover;
         }
-        #overlay-image {
+        #download-menu {
+            position: absolute;
+            bottom: 80px; /* Space above the download icon */
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+            display: none; /* Initially hidden */
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+        #download-menu button {
+            background: #61dafb;
+            border: none;
+            color: #000;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+        }
+        #download-menu button:hover {
+            background: #4fa3c5;
+        }
+        #download-icon {
             position: absolute;
             bottom: 20px;
             right: 20px;
-            max-width: 250px; /* Medium size */
-            max-height: 200px; /* Medium size */
-            border: 5px solid gold; /* Gold border */
-            border-radius: 10px;
-            display: none; /* Initially hidden */
-            animation: frameAnimation 2s infinite; /* Gold frame animation */
-        }
-        @keyframes frameAnimation {
-            0% {
-                border-color: gold;
-                box-shadow: 0 0 10px gold;
-            }
-            50% {
-                border-color: darkgoldenrod;
-                box-shadow: 0 0 20px darkgoldenrod;
-            }
-            100% {
-                border-color: gold;
-                box-shadow: 0 0 10px gold;
-            }
-        }
-        #upload-section {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
+            width: 50px;
+            height: 50px;
+            background: #61dafb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            font-size: 24px;
+            color: #000;
             z-index: 10;
         }
-        #upload-section input[type="file"] {
-            margin: 10px 0;
+        #download-icon:hover {
+            background: #4fa3c5;
         }
     </style>
 </head>
@@ -70,34 +79,47 @@
             <source src="VN20240908_183020.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
-        <img id="overlay-image" />
+        <div id="download-icon" onclick="toggleMenu()">⬇️</div>
+        <div id="download-menu">
+            <button onclick="downloadVideo()">Save as Video</button>
+            <button onclick="downloadImage()">Save as Image</button>
+        </div>
     </div>
-    
-    <!-- Upload Section -->
-    <div id="upload-section">
-        <h1>Upload Image</h1>
-        <input type="file" id="file-input" accept="image/*">
-    </div>
-    
+
     <script>
-        const fileInput = document.getElementById('file-input');
-        const overlayImage = document.getElementById('overlay-image');
-        const uploadSection = document.getElementById('upload-section');
-        
-        fileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    overlayImage.src = e.target.result;
-                    overlayImage.style.display = 'block'; // Show the image overlay
-                    uploadSection.style.display = 'none'; // Hide the upload section
-                };
-                reader.readAsDataURL(file);
-            } else {
-                alert('Please upload a valid image file.');
-            }
-        });
+        function toggleMenu() {
+            const menu = document.getElementById('download-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function downloadVideo() {
+            const video = document.getElementById('background-video');
+            const link = document.createElement('a');
+            link.href = video.getElementsByTagName('source')[0].src;
+            link.download = 'video.mp4';
+            link.click();
+            toggleMenu(); // Hide the menu after clicking
+        }
+
+        function downloadImage() {
+            const video = document.getElementById('background-video');
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw current video frame onto canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas to data URL
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'video-frame.png';
+            link.click();
+            toggleMenu(); // Hide the menu after clicking
+        }
     </script>
 </body>
 </html>
